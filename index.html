@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder SaaS Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Keyframe Animations -->
+    <style>
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-card {
+            animation: fadeInSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .glow-hover {
+            transition: all 0.3s ease;
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.3);
+            border-color: rgba(56, 189, 248, 0.6);
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-sky-500 selection:text-white">
+
+    <!-- LOGIN / REGISTER MODAL OVERLAY -->
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6 glow-hover">
+            <div class="text-center space-y-2">
+                <span class="text-4xl inline-block animate-bounce">🎯</span>
+                <h2 class="text-2xl font-bold text-white">PathFinder SaaS Portal</h2>
+                <p class="text-xs text-slate-400">Sign in or register to access your workspace</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button id="tabBtnLogin" onclick="toggleAuthTab('login')" class="w-1/2 py-2 text-xs font-bold rounded-lg text-sky-400 bg-slate-900 border border-slate-800">Sign In</button>
+                <button id="tabBtnRegister" onclick="toggleAuthTab('register')" class="w-1/2 py-2 text-xs font-bold rounded-lg text-slate-400">Register</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="loginForm" onsubmit="handleAuth(event, 'login')" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email / Username</label>
+                    <input type="email" id="loginEmail" value="demo_learner@pathfinder.ai" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <input type="password" id="loginPass" value="demo1234" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-sky-500/25">Launch Workspace</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" onsubmit="handleAuth(event, 'register')" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+                    <input type="text" id="regName" placeholder="Annu Kumar" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email</label>
+                    <input type="email" id="regEmail" placeholder="annu@example.com" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <input type="password" id="regPass" placeholder="••••••••" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-sky-500/25">Create Account & Access</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Glowing Background Effect -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-sky-500/10 blur-[120px] pointer-events-none rounded-full"></div>
+
+    <!-- Navigation Header -->
+    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3 group cursor-pointer" onclick="switchTab('recommender')">
+                <span class="text-2xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">🎯</span>
+                <span class="text-xl font-bold bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">PathFinder SaaS</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <nav class="flex space-x-2">
+                    <button onclick="switchTab('recommender')" id="btn-recommender" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-300 bg-sky-500/10 text-sky-400 border border-sky-500/30 shadow-lg shadow-sky-500/10">
+                        <i class="fa-solid fa-compass mr-1.5"></i>Recommender
+                    </button>
+                    <button onclick="switchTab('roadmap')" id="btn-roadmap" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition-all duration-300">
+                        <i class="fa-solid fa-map-location-dot mr-1.5"></i>Roadmap
+                    </button>
+                    <button onclick="switchTab('analytics')" id="btn-analytics" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition-all duration-300">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i>Skill Analytics
+                    </button>
+                    <button onclick="switchTab('profile')" id="btn-profile" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition-all duration-300">
+                        <i class="fa-solid fa-user-gear mr-1.5"></i>Learner Profile
+                    </button>
+                </nav>
+                <button onclick="logout()" class="text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg transition">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i>Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-6 py-10 relative z-10">
+
+        <!-- TAB 1: RECOMMENDER -->
+        <section id="tab-recommender" class="space-y-8">
+            <div class="space-y-2">
+                <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">
+                    <span class="inline-block animate-bounce">💬</span> AI Goal & Course Recommender
+                </h1>
+                <p class="text-slate-400">Match your learning objectives with curated courses and Groq AI justifications.</p>
+            </div>
+
+            <!-- Input Box -->
+            <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-xl space-y-4 glow-hover">
+                <label class="block text-sm font-semibold text-slate-300 flex items-center justify-between">
+                    <span>Describe your learning objective:</span>
+                    <span class="text-xs text-slate-500">FastAPI Async Powered</span>
+                </label>
+                <textarea id="userGoal" rows="3" class="w-full bg-slate-950 text-slate-100 rounded-xl p-4 border border-slate-800 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition-all duration-200 resize-none shadow-inner" placeholder="What do you want to learn?">Master Machine Learning and deploy production recommendation engines.</textarea>
+                
+                <button onclick="fetchRecommendations()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 active:scale-[0.99] flex items-center justify-center space-x-2 group">
+                    <i class="fa-solid fa-bolt text-amber-300 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12"></i>
+                    <span>Fetch Recommendations</span>
+                </button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loader" class="hidden text-center py-12 space-y-3">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-sky-500 border-t-transparent shadow-lg shadow-sky-500/50"></div>
+                <p class="text-slate-400 text-sm font-medium animate-pulse">Querying vector search engine...</p>
+            </div>
+
+            <!-- Results Output -->
+            <div id="resultsContainer" class="space-y-5"></div>
+        </section>
+
+        <!-- TAB 2: ROADMAP -->
+        <section id="tab-roadmap" class="hidden space-y-8">
+            <div class="space-y-2">
+                <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">
+                    <span>🗺️</span> Autonomous Learning Roadmap
+                </h1>
+                <p class="text-slate-400">AI-generated step-by-step sequencing for your current career target.</p>
+            </div>
+
+            <button onclick="fetchRoadmap()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/20 active:scale-95 flex items-center space-x-2 group">
+                <i class="fa-solid fa-arrows-rotate transition-transform duration-500 group-hover:rotate-180"></i>
+                <span>Generate Fresh Sequence</span>
+            </button>
+
+            <div id="roadmapContainer" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 3: SKILL ANALYTICS -->
+        <section id="tab-analytics" class="hidden space-y-6">
+            <div class="space-y-2">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span>📊</span> Competency & Skill Analytics
+                </h1>
+                <p class="text-slate-400 text-sm">Real-time breakdown of completed topics, skill mastery, and progress velocity.</p>
+            </div>
+
+            <!-- Analytics Metric Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Goal Completion</span>
+                    <div class="text-3xl font-extrabold text-sky-400">42%</div>
+                    <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800">
+                        <div class="bg-sky-500 h-2 rounded-full" style="width: 42%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Learning Velocity</span>
+                    <div class="text-3xl font-extrabold text-emerald-400">8.5 Hrs/Wk</div>
+                    <p class="text-xs text-slate-500">On track for targeted goal timeline</p>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mastered Competencies</span>
+                    <div class="text-3xl font-extrabold text-amber-400">6 / 14</div>
+                    <p class="text-xs text-slate-500">3 prerequisite modules pending</p>
+                </div>
+            </div>
+
+            <!-- Skill Breakdown Chart Box -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 glow-hover">
+                <h3 class="text-lg font-bold text-slate-200">Competency Coverage</h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1">
+                            <span class="text-slate-300">Core Syntax & Environment Setup</span>
+                            <span class="text-emerald-400">100% (Mastered)</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800">
+                            <div class="bg-emerald-500 h-2.5 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1">
+                            <span class="text-slate-300">Applied Algorithms & Hands-on Projects</span>
+                            <span class="text-sky-400">65% (In Progress)</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800">
+                            <div class="bg-sky-500 h-2.5 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold mb-1">
+                            <span class="text-slate-300">Production Deployment & Cloud Infrastructure</span>
+                            <span class="text-slate-500">15% (Upcoming)</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800">
+                            <div class="bg-slate-700 h-2.5 rounded-full" style="width: 15%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: LEARNER PROFILE -->
+        <section id="tab-profile" class="hidden space-y-6">
+            <div class="space-y-2">
+                <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span>👤</span> Learner Profile & Background
+                </h1>
+                <p class="text-slate-400 text-sm">Configure your prior knowledge, domain interest, and time commitment to refine your learning context.</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-5 glow-hover">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Experience Level</label>
+                        <select id="profileLevel" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                            <option value="Beginner">Beginner (New to Domain)</option>
+                            <option value="Intermediate" selected>Intermediate (Some Experience)</option>
+                            <option value="Advanced">Advanced (Production Practitioner)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Target Primary Domain</label>
+                        <select id="profileDomain" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                            <option value="Data Science & AI" selected>Data Science & AI</option>
+                            <option value="Web Development">Web Development & Fullstack</option>
+                            <option value="Cloud & DevOps">Cloud & DevOps</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Completed Courses / Existing Skills</label>
+                    <input type="text" id="profileHistory" value="Python Syntax, Git Version Control, Basic HTML/CSS" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Weekly Time Commitment (Hours/Week)</label>
+                    <input type="number" id="profileHours" value="10" min="1" max="40" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+
+                <button onclick="saveProfile()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95 flex items-center space-x-2">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Save Profile Preferences</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript REST Engine -->
+    <script>
+        const API_BASE = "http://127.0.0.1:8000/api";
+
+        function toggleAuthTab(type) {
+            const isLogin = type === 'login';
+            document.getElementById("loginForm").classList.toggle("hidden", !isLogin);
+            document.getElementById("registerForm").classList.toggle("hidden", isLogin);
+            document.getElementById("tabBtnLogin").className = isLogin ? "w-1/2 py-2 text-xs font-bold rounded-lg text-sky-400 bg-slate-900 border border-slate-800" : "w-1/2 py-2 text-xs font-bold rounded-lg text-slate-400";
+            document.getElementById("tabBtnRegister").className = !isLogin ? "w-1/2 py-2 text-xs font-bold rounded-lg text-sky-400 bg-slate-900 border border-slate-800" : "w-1/2 py-2 text-xs font-bold rounded-lg text-slate-400";
+        }
+
+        function handleAuth(e, type) {
+            e.preventDefault();
+            document.getElementById("authModal").classList.add("hidden");
+        }
+
+        function logout() {
+            document.getElementById("authModal").classList.remove("hidden");
+        }
+
+        function switchTab(tab) {
+            const tabs = ['recommender', 'roadmap', 'analytics', 'profile'];
+            
+            tabs.forEach(t => {
+                const sec = document.getElementById(`tab-${t}`);
+                if (sec) sec.classList.toggle("hidden", t !== tab);
+                
+                const btn = document.getElementById(`btn-${t}`);
+                if (btn) {
+                    btn.className = (t === tab)
+                        ? "px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-300 bg-sky-500/10 text-sky-400 border border-sky-500/30 shadow-lg shadow-sky-500/10"
+                        : "px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition-all duration-300";
+                }
+            });
+
+            if (tab === 'roadmap' && !document.getElementById("roadmapContainer").children.length) {
+                fetchRoadmap();
+            }
+        }
+
+        function saveProfile() {
+            alert("✅ Learner profile preferences saved! AI recommendations will adapt to your specified experience level and weekly commitment.");
+        }
+
+        async function fetchRecommendations() {
+            const userGoal = document.getElementById("userGoal").value.trim();
+            if (!userGoal) return;
+
+            const loader = document.getElementById("loader");
+            const container = document.getElementById("resultsContainer");
+            
+            loader.classList.remove("hidden");
+            container.innerHTML = "";
+
+            try {
+                const response = await fetch(`${API_BASE}/recommend`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_goal: userGoal, top_k: 4 })
+                });
+
+                const data = await response.json();
+                loader.classList.add("hidden");
+
+                if (!data.results || data.results.length === 0) {
+                    container.innerHTML = `<p class="text-slate-400 text-center py-8">No courses matched your query.</p>`;
+                    return;
+                }
+
+                data.results.forEach((item, index) => {
+                    const card = document.createElement("div");
+                    card.className = "bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 glow-hover animate-card";
+                    card.style.animationDelay = `${index * 0.08}s`;
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start gap-4">
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-sky-400 transition-colors duration-200">📚 ${item.Course}</h3>
+                            <span class="bg-sky-500/10 text-sky-400 text-xs font-bold px-3 py-1.5 rounded-full border border-sky-500/30 shadow-sm shrink-0">
+                                <i class="fa-solid fa-chart-line mr-1"></i>${item.Match_Score}% Match
+                            </span>
+                        </div>
+                        
+                        <p class="text-slate-400 text-sm italic bg-slate-950/50 p-3.5 rounded-xl border border-slate-800/60">
+                            "${item.Reviews}"
+                        </p>
+                        
+                        <details class="group bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300">
+                            <summary onclick="loadExplanation('${userGoal}', '${item.Course.replace(/'/g, "\\'")}', 'exp-${index}')" class="cursor-pointer p-4 text-sm text-sky-400 font-semibold flex items-center justify-between hover:bg-slate-900/50 transition-colors">
+                                <span class="flex items-center space-x-2">
+                                    <i class="fa-solid fa-robot text-sky-400"></i>
+                                    <span>View AI Explanation</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform duration-300 text-xs"></i>
+                            </summary>
+                            <div id="exp-${index}" class="p-4 text-slate-300 text-sm whitespace-pre-line border-t border-slate-800/80 bg-slate-950/90 leading-relaxed">
+                                <span class="text-slate-500 flex items-center space-x-2">
+                                    <i class="fa-solid fa-spinner animate-spin"></i>
+                                    <span>Click to generate Groq analysis...</span>
+                                </span>
+                            </div>
+                        </details>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                loader.classList.add("hidden");
+                container.innerHTML = `<div class="bg-rose-500/10 border border-rose-500/30 p-4 rounded-xl text-rose-400 text-sm text-center">Failed to connect to Uvicorn server (${err.message}). Make sure Uvicorn is running on port 8000!</div>`;
+            }
+        }
+
+        async function loadExplanation(userGoal, courseTitle, elementId) {
+            const targetDiv = document.getElementById(elementId);
+            if (targetDiv.getAttribute("data-loaded") === "true") return;
+
+            targetDiv.innerHTML = `<span class="animate-pulse text-sky-400 font-medium flex items-center space-x-2"><i class="fa-solid fa-brain animate-bounce"></i><span>Generating live technical breakdown via Groq...</span></span>`;
+
+            try {
+                const response = await fetch(`${API_BASE}/explain`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_goal: userGoal, course_title: courseTitle })
+                });
+
+                const data = await response.json();
+                targetDiv.innerHTML = data.explanation.replace(/\n/g, '<br>');
+                targetDiv.setAttribute("data-loaded", "true");
+            } catch (err) {
+                targetDiv.innerHTML = `<span class="text-rose-400">Error generating explanation.</span>`;
+            }
+        }
+
+        async function fetchRoadmap() {
+            const container = document.getElementById("roadmapContainer");
+            container.innerHTML = `<div class="text-center py-8 text-sky-400 animate-pulse font-medium"><i class="fa-solid fa-compass animate-spin mr-2"></i>Synthesizing custom roadmap via Groq AI...</div>`;
+
+            const userGoal = document.getElementById("userGoal").value.trim() || "Master Machine Learning";
+
+            try {
+                const response = await fetch(`${API_BASE}/roadmap`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_goal: userGoal })
+                });
+
+                const data = await response.json();
+                container.innerHTML = "";
+
+                data.roadmap.forEach((step, index) => {
+                    const el = document.createElement("div");
+                    el.className = "bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 glow-hover animate-card";
+                    el.style.animationDelay = `${index * 0.08}s`;
+                    
+                    el.innerHTML = `
+                        <div class="space-y-1">
+                            <h4 class="text-lg font-bold text-sky-400 flex items-center gap-2">
+                                <span class="bg-sky-500/20 text-sky-300 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black border border-sky-500/30">${step.Step}</span>
+                                ${step.Milestone}
+                            </h4>
+                            <p class="text-slate-400 text-sm"><b>Topic:</b> ${step.Topic}</p>
+                        </div>
+                        <div class="flex items-center space-x-3 text-xs font-bold shrink-0">
+                            <span class="bg-slate-950 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-800"><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${step.Duration}</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30"><i class="fa-solid fa-circle-check mr-1.5"></i>${step.Status}</span>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            } catch (err) {
+                container.innerHTML = `<p class="text-rose-400 text-center py-4">Failed to fetch roadmap sequence.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

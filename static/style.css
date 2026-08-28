@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Base Canvas */
+.stApp {
+    background-color: #090d16 !important;
+    font-family: 'Inter', sans-serif !important;
+    color: #f1f5f9 !important;
+}
+
+/* Sidebar Layout */
+section[data-testid="stSidebar"] {
+    background-color: #111827 !important;
+    border-right: 1px solid #1f2937 !important;
+}
+
+section[data-testid="stSidebar"] p, 
+section[data-testid="stSidebar"] label, 
+section[data-testid="stSidebar"] span {
+    color: #cbd5e1 !important;
+    font-weight: 500 !important;
+}
+
+/* Typography & Titles */
+h1, h2, h3 {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+h4, h5, h6, label, p, span {
+    color: #cbd5e1 !important;
+}
+
+/* Cards & Containers */
+.saas-card {
+    background-color: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.saas-card:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Buttons */
+div.stButton > button[kind="primary"], div.stFormSubmitButton > button {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    transition: all 0.2s ease !important;
+}
+
+div.stButton > button[kind="primary"]:hover, div.stFormSubmitButton > button:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #ffffff !important;
+}
+
+div.stButton > button[kind="secondary"], button[data-testid="stBaseButton-secondary"] {
+    background-color: #1f2937 !important;
+    color: #f8fafc !important;
+    border: 1px solid #374151 !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+
+div.stButton > button[kind="secondary"]:hover {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+/* Input Fields */
+input[type="text"], input[type="password"], textarea, div[data-baseweb="select"] > div {
+    background-color: #111827 !important;
+    color: #f8fafc !important;
+    border: 1px solid #374151 !important;
+    border-radius: 8px !important;
+}
+
+input:focus, textarea:focus, div[data-baseweb="select"]:focus-within {
+    border-color: #3b82f6 !important;
+    outline: none !important;
+}
+
+/* Metrics & Progress Bars */
+div[data-testid="stMetric"] {
+    background-color: #111827 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    padding: 16px !important;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+.stProgress > div > div > div > div {
+    background-color: #2563eb !important;
+    border-radius: 6px !important;
+}
+
+/* Navigation Tabs */
+button[data-baseweb="tab"] {
+    background-color: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 10px 20px !important;
+    margin-right: 6px !important;
+}
+
+button[data-baseweb="tab"] div, button[data-baseweb="tab"] p, button[data-baseweb="tab"] span {
+    color: #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+
+button[aria-selected="true"] {
+    background-color: #2563eb !important;
+    border-color: #3b82f6 !important;
+}
+
+button[aria-selected="true"] div, button[aria-selected="true"] p, button[aria-selected="true"] span {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
