@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, validator
 import os
 import json
+import sqlite3
+import re
 from recommender import PathFinderRecommender
 from groq import Groq
 
@@ -17,13 +19,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- SQLite Database Initialization ---
+DB_FILE = "pathfinder.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            name TEXT
+        )
+    """)
+    # Seed default demo account
+    cursor.execute("INSERT OR IGNORE INTO users (email, password, name) VALUES (?, ?, ?)",
+                   ("demo_learner@pathfinder.ai", "demo1234", "Demo Learner"))
+    conn.commit()
+    conn.close()
+
+init_db()
+
 # Load engine ONCE in memory when Uvicorn boots
 recommender = PathFinderRecommender(index_path="search_index.pkl")
-
-# In-memory user store for workspace authentication
-registered_users = {
-    "demo_learner@pathfinder.ai": "demo1234"
-}
 
 # Initialize Groq Client
 def get_groq():
@@ -41,10 +60,20 @@ client = get_groq()
 
 # Schemas
 class AuthRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     name: str = ""
-    auth_type: str = "login"
+    auth_type: str = "login"  # "login" or "register"
+
+    @validator("password")
+    def validate_password(cls, v, values):
+        # Apply strict password rule only during registration
+        if values.get("auth_type") == "register":
+            if len(v) < 8:
+                raise ValueError("Password must be at least 8 characters long.")
+            if not re.search(r"[A-Za-z]", v) or not re.search(r"\d", v):
+                raise ValueError("Password must contain both letters and digits.")
+        return v
 
 class RecommendRequest(BaseModel):
     user_goal: str
@@ -67,16 +96,45 @@ async def authenticate_user(req: AuthRequest):
     if not email or not req.password:
         raise HTTPException(status_code=400, detail="Email and password required.")
         
-    if req.auth_type == "login":
-        if email not in registered_users or registered_users[email] != req.password:
-            raise HTTPException(status_code=401, detail="Invalid credentials.")
-        return {"status": "success", "username": email.split("@")[0].title()}
-    else:
-        registered_users[email] = req.password
-        display_name = req.name.strip() if req.name else email.split("@")[0].title()
-        return {"status": "success", "username": display_name}
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
 
-# Core Endpoints
+    if req.auth_type == "login":
+        cursor.execute("SELECT password, name FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="No account found with this email. Please register first."
+            )
+        if row[0] != req.password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="Incorrect password entered. Please try again."
+            )
+        
+        display_name = row[1] if row[1] else email.split("@")[0].title()
+        return {"status": "success", "username": display_name, "email": email}
+
+    else:  # Registration Flow
+        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+        if cursor.fetchone():
+            conn.close()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="An account already exists with this email address. Please sign in."
+            )
+
+        display_name = req.name.strip() if req.name else email.split("@")[0].title()
+        cursor.execute("INSERT INTO users (email, password, name) VALUES (?, ?, ?)", (email, req.password, display_name))
+        conn.commit()
+        conn.close()
+
+        return {"status": "success", "username": display_name, "email": email, "message": "Account created successfully."}
+
+# Core Search & AI Endpoints
 @app.post("/api/recommend")
 async def recommend_courses(req: RecommendRequest):
     if not req.user_goal.strip():
@@ -109,7 +167,6 @@ async def explain_course(req: ExplainRequest):
     """
     
     try:
-        # Enforce 4-second max timeout so Groq queue delays never hang the frontend
         response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": "You are a concise technical advisor."},
@@ -122,14 +179,12 @@ async def explain_course(req: ExplainRequest):
         )
         return {"explanation": response.choices[0].message.content.strip()}
     except Exception:
-        # Returns instant fallback formatting if Groq rate-limits or times out
         return {"explanation": fallback_text}
 
 @app.post("/api/roadmap")
 async def get_roadmap(req: RoadmapRequest):
     user_goal = req.user_goal.strip() if req.user_goal else "General Learning"
     
-    # Dynamic fallback based on user input topic
     dynamic_fallback = [
         {"Step": 1, "Milestone": f"Foundations & Syntax for {user_goal}", "Topic": "Core Concepts, Environment & Tooling Setup", "Duration": "2 Weeks", "Status": "Completed"},
         {"Step": 2, "Milestone": f"Applied Skills & Building Blocks", "Topic": "Intermediate Implementations & Hands-on Projects", "Duration": "3 Weeks", "Status": "In Progress"},
