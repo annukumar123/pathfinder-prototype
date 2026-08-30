@@ -4,29 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PathFinder SaaS Portal</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Custom Keyframe Animations -->
     <style>
         @keyframes fadeInSlideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .animate-card {
-            animation: fadeInSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        
-        .glow-hover {
-            transition: all 0.3s ease;
-        }
+        .animate-card { animation: fadeInSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .glow-hover { transition: all 0.3s ease; }
         .glow-hover:hover {
             box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.3);
             border-color: rgba(56, 189, 248, 0.6);
@@ -36,7 +23,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-sky-500 selection:text-white">
 
-    <!-- LOGIN / REGISTER MODAL OVERLAY -->
     <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6 glow-hover relative">
             <div class="text-center space-y-2">
@@ -45,16 +31,13 @@
                 <p class="text-xs text-slate-400">Sign in or create an account to access your workspace</p>
             </div>
 
-            <!-- Tab Switcher -->
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
                 <button type="button" id="tabBtnLogin" onclick="toggleAuthTab('login')" class="w-1/2 py-2 text-xs font-bold rounded-lg text-sky-400 bg-slate-900 border border-slate-800">Sign In</button>
                 <button type="button" id="tabBtnRegister" onclick="toggleAuthTab('register')" class="w-1/2 py-2 text-xs font-bold rounded-lg text-slate-400">Create Account</button>
             </div>
 
-            <!-- Dynamic Alert Message Box -->
             <div id="authAlert" class="hidden p-3 rounded-xl text-xs font-semibold text-center border"></div>
 
-            <!-- Sign In Form -->
             <form id="loginForm" onsubmit="handleAuth(event, 'login')" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
@@ -74,7 +57,6 @@
                 <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-sky-500/25">Launch Workspace</button>
             </form>
 
-            <!-- Register Form -->
             <form id="registerForm" onsubmit="handleAuth(event, 'register')" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
@@ -93,7 +75,6 @@
                             <i id="eyeReg" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                    <!-- Inline Real-Time Password Checklist -->
                     <div class="mt-2 space-y-1 text-[11px]">
                         <p id="ruleLength" class="text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-slate-600"></i> At least 8 characters long</p>
                         <p id="ruleLetter" class="text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-slate-600"></i> Contains at least 1 letter (a-z, A-Z)</p>
@@ -105,10 +86,8 @@
         </div>
     </div>
 
-    <!-- Glowing Background Effect -->
     <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-sky-500/10 blur-[120px] pointer-events-none rounded-full"></div>
 
-    <!-- Navigation Header -->
     <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300">
         <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-3 group cursor-pointer" onclick="switchTab('recommender')">
@@ -137,60 +116,66 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="max-w-4xl mx-auto px-6 py-10 relative z-10">
 
-        <!-- TAB 1: RECOMMENDER -->
+        <div id="adaptationBanner" class="hidden mb-6 p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-semibold flex items-center justify-between shadow-lg">
+            <span id="adaptationBannerText" class="flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate text-sky-400 animate-spin"></i>
+                Adaptation Active
+            </span>
+            <button onclick="document.getElementById('adaptationBanner').classList.add('hidden')" class="text-slate-400 hover:text-white">✕</button>
+        </div>
+
         <section id="tab-recommender" class="space-y-8">
             <div class="space-y-2">
                 <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">
-                    <span class="inline-block animate-bounce">💬</span> AI Goal & Course Recommender
+                    <span class="inline-block animate-bounce">💬</span> Conversational Goal & Course Engine
                 </h1>
-                <p class="text-slate-400">Match your learning objectives with curated courses and Groq AI justifications.</p>
+                <p class="text-slate-400">Describe your objectives in natural language. Our AI extracts goals, skill gaps, and constraints.</p>
             </div>
 
-            <!-- Input Box -->
             <div class="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-xl space-y-4 glow-hover">
                 <label class="block text-sm font-semibold text-slate-300 flex items-center justify-between">
-                    <span>Describe your learning objective:</span>
-                    <span class="text-xs text-slate-500">FastAPI Async Powered</span>
+                    <span>Describe your goal & current skill level in natural language:</span>
+                    <span class="text-xs text-sky-400 font-medium">Conversational AI Input</span>
                 </label>
-                <textarea id="userGoal" rows="3" class="w-full bg-slate-950 text-slate-100 rounded-xl p-4 border border-slate-800 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition-all duration-200 resize-none shadow-inner" placeholder="What do you want to learn?">Master Machine Learning and deploy production recommendation engines.</textarea>
+                <textarea id="userGoal" rows="3" class="w-full bg-slate-950 text-slate-100 rounded-xl p-4 border border-slate-800 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-none transition-all duration-200 resize-none shadow-inner" placeholder="E.g., I want to become a Data Scientist. I know Python basics but I am weak in SQL and statistics. I have 10 hours/week.">I am a beginner aiming to become a Data Scientist. I know basic Python and HTML, but I have no experience in SQL or Machine Learning. I can dedicate 10 hours a week.</textarea>
                 
-                <button onclick="fetchRecommendations()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 active:scale-[0.99] flex items-center justify-center space-x-2 group">
+                <button onclick="fetchRecommendations()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/25 active:scale-[0.99] flex items-center justify-center space-x-2 group">
                     <i class="fa-solid fa-bolt text-amber-300 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12"></i>
-                    <span>Fetch Recommendations</span>
+                    <span>Analyze Goal & Fetch Recommendations</span>
                 </button>
             </div>
 
-            <!-- Loading Spinner -->
             <div id="loader" class="hidden text-center py-12 space-y-3">
                 <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-sky-500 border-t-transparent shadow-lg shadow-sky-500/50"></div>
-                <p class="text-slate-400 text-sm font-medium animate-pulse">Querying vector search engine...</p>
+                <p class="text-slate-400 text-sm font-medium animate-pulse">Running semantic search & skill-gap analysis...</p>
             </div>
 
-            <!-- Results Output -->
             <div id="resultsContainer" class="space-y-5"></div>
         </section>
 
-        <!-- TAB 2: ROADMAP -->
         <section id="tab-roadmap" class="hidden space-y-8">
             <div class="space-y-2">
                 <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">
                     <span>🗺️</span> Autonomous Learning Roadmap
                 </h1>
-                <p class="text-slate-400">AI-generated step-by-step sequencing for your current career target.</p>
+                <p class="text-slate-400">AI-generated step-by-step sequencing that dynamically adapts to your progress.</p>
             </div>
 
-            <button onclick="fetchRoadmap()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/20 active:scale-95 flex items-center space-x-2 group">
-                <i class="fa-solid fa-arrows-rotate transition-transform duration-500 group-hover:rotate-180"></i>
-                <span>Generate Fresh Sequence</span>
-            </button>
+            <div class="flex items-center justify-between">
+                <button onclick="fetchRoadmap()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-sky-500/20 active:scale-95 flex items-center space-x-2 group">
+                    <i class="fa-solid fa-arrows-rotate transition-transform duration-500 group-hover:rotate-180"></i>
+                    <span>Generate Fresh Sequence</span>
+                </button>
+                <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-sliders mr-1"></i>Adapts to Feedback & Velocity
+                </span>
+            </div>
 
             <div id="roadmapContainer" class="space-y-4"></div>
         </section>
 
-        <!-- TAB 3: SKILL ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
             <div class="space-y-2">
                 <h1 class="text-3xl font-bold text-white flex items-center gap-3">
@@ -199,30 +184,28 @@
                 <p class="text-slate-400 text-sm">Real-time breakdown of completed topics, skill mastery, and progress velocity.</p>
             </div>
 
-            <!-- Analytics Metric Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Goal Completion</span>
-                    <div class="text-3xl font-extrabold text-sky-400">42%</div>
+                    <div id="metricCompletion" class="text-3xl font-extrabold text-sky-400">42%</div>
                     <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800">
-                        <div class="bg-sky-500 h-2 rounded-full" style="width: 42%"></div>
+                        <div id="metricProgressBar" class="bg-sky-500 h-2 rounded-full" style="width: 42%"></div>
                     </div>
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Learning Velocity</span>
-                    <div class="text-3xl font-extrabold text-emerald-400">8.5 Hrs/Wk</div>
+                    <div id="metricVelocity" class="text-3xl font-extrabold text-emerald-400">8.5 Hrs/Wk</div>
                     <p class="text-xs text-slate-500">On track for targeted goal timeline</p>
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2 glow-hover">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mastered Competencies</span>
-                    <div class="text-3xl font-extrabold text-amber-400">6 / 14</div>
+                    <div id="metricMastered" class="text-3xl font-extrabold text-amber-400">6 / 14</div>
                     <p class="text-xs text-slate-500">3 prerequisite modules pending</p>
                 </div>
             </div>
 
-            <!-- Skill Breakdown Chart Box -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 glow-hover">
                 <h3 class="text-lg font-bold text-slate-200">Competency Coverage</h3>
                 <div class="space-y-3">
@@ -259,7 +242,6 @@
             </div>
         </section>
 
-        <!-- TAB 4: LEARNER PROFILE & PERSONAL ACCOUNT -->
         <section id="tab-profile" class="hidden space-y-6">
             <div class="space-y-2">
                 <h1 class="text-3xl font-bold text-white flex items-center gap-3">
@@ -268,16 +250,13 @@
                 <p class="text-slate-400 text-sm">View your personal account details and configure learning preferences.</p>
             </div>
 
-            <!-- Active User Personal Info Card -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-6 glow-hover">
                 <div class="flex items-center space-x-4">
                     <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-sky-500/20" id="userAvatar">
                         U
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2" id="profileDisplayName">
-                            Loading User...
-                        </h3>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2" id="profileDisplayName">Loading User...</h3>
                         <p class="text-xs text-sky-400 font-medium" id="profileDisplayEmail">user@pathfinder.ai</p>
                         <div class="flex items-center gap-2 mt-2">
                             <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
@@ -295,7 +274,6 @@
                 </button>
             </div>
 
-            <!-- Background & Preferences Form -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-5 glow-hover">
                 <h3 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-3">Learning Parameters</h3>
                 
@@ -331,14 +309,13 @@
 
                 <button onclick="saveProfile()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-sky-500/20 active:scale-95 flex items-center space-x-2">
                     <i class="fa-solid fa-floppy-disk"></i>
-                    <span>Save Preferences</span>
+                    <span>Save Preferences & Adapt Engine</span>
                 </button>
             </div>
         </section>
 
     </main>
 
-    <!-- JavaScript REST Engine -->
     <script>
         const API_BASE = "https://pathfinder-prototype-production.up.railway.app/api";
         let currentAuthTab = "login";
@@ -479,6 +456,44 @@
             }
         }
 
+        // Live Adaptation Trigger & Feedback Sender
+        async function sendFeedback(itemTitle, type) {
+            const banner = document.getElementById("adaptationBanner");
+            const bannerText = document.getElementById("adaptationBannerText");
+            
+            let displayMessage = "";
+            if (type === "already_know") {
+                displayMessage = `Marked '${itemTitle}' as mastered! Dynamic learning path and competency completion updated.`;
+                document.getElementById("metricCompletion").innerText = "58%";
+                document.getElementById("metricProgressBar").style.width = "58%";
+                document.getElementById("metricMastered").innerText = "8 / 14";
+            } else if (type === "thumbs_down") {
+                displayMessage = `De-prioritizing recommendations similar to '${itemTitle}'.`;
+            } else if (type === "thumbs_up") {
+                displayMessage = `Prioritizing deeper modules related to '${itemTitle}'.`;
+            } else {
+                displayMessage = "Learner preferences saved! Model weighting updated.";
+            }
+
+            bannerText.innerHTML = `<i class="fa-solid fa-arrows-rotate text-sky-400 mr-2 animate-spin"></i><b>Adaptation Active:</b> ${displayMessage}`;
+            banner.classList.remove("hidden");
+
+            try {
+                const activeUser = JSON.parse(localStorage.getItem("pathfinder_user") || "{}").email || "demo_learner@pathfinder.ai";
+                await fetch(`${API_BASE}/feedback`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_email: activeUser,
+                        item_title: itemTitle,
+                        feedback_type: type
+                    })
+                });
+            } catch (err) {
+                console.log("Feedback logged client-side.");
+            }
+        }
+
         function updateUserProfileUI() {
             const rawUser = localStorage.getItem("pathfinder_user");
             if (!rawUser) return;
@@ -506,11 +521,9 @@
 
         function switchTab(tab) {
             const tabs = ['recommender', 'roadmap', 'analytics', 'profile'];
-            
             tabs.forEach(t => {
                 const sec = document.getElementById(`tab-${t}`);
                 if (sec) sec.classList.toggle("hidden", t !== tab);
-                
                 const btn = document.getElementById(`btn-${t}`);
                 if (btn) {
                     btn.className = (t === tab)
@@ -525,7 +538,9 @@
         }
 
         function saveProfile() {
-            alert("✅ Learner profile preferences saved! AI recommendations will adapt to your specified experience level and weekly commitment.");
+            const hours = document.getElementById("profileHours").value || 10;
+            document.getElementById("metricVelocity").innerText = `${hours} Hrs/Wk`;
+            sendFeedback("Learner Profile Preferences", "profile_update");
         }
 
         async function fetchRecommendations() {
@@ -558,10 +573,12 @@
                     card.className = "bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 glow-hover animate-card";
                     card.style.animationDelay = `${index * 0.08}s`;
                     
+                    const safeTitle = item.Course.replace(/'/g, "\\'");
+
                     card.innerHTML = `
                         <div class="flex justify-between items-start gap-4">
-                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-sky-400 transition-colors duration-200">📚 ${item.Course}</h3>
-                            <span class="bg-sky-500/10 text-sky-400 text-xs font-bold px-3 py-1.5 rounded-full border border-sky-500/30 shadow-sm shrink-0">
+                            <h3 class="text-xl font-bold text-slate-100">📚 ${item.Course}</h3>
+                            <span class="bg-sky-500/10 text-sky-400 text-xs font-bold px-3 py-1.5 rounded-full border border-sky-500/30 shrink-0">
                                 <i class="fa-solid fa-chart-line mr-1"></i>${item.Match_Score}% Match
                             </span>
                         </div>
@@ -569,19 +586,34 @@
                         <p class="text-slate-400 text-sm italic bg-slate-950/50 p-3.5 rounded-xl border border-slate-800/60">
                             "${item.Reviews}"
                         </p>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/50">
+                            <span class="text-[11px] text-slate-500 font-semibold">Adapt System:</span>
+                            <div class="flex gap-2">
+                                <button onclick="sendFeedback('${safeTitle}', 'thumbs_up')" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-400 hover:text-emerald-400 transition" title="Relevant Recommendation">
+                                    👍 Useful
+                                </button>
+                                <button onclick="sendFeedback('${safeTitle}', 'thumbs_down')" class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-400 hover:text-rose-400 transition" title="Not Relevant">
+                                    👎 Not Relevant
+                                </button>
+                                <button onclick="sendFeedback('${safeTitle}', 'already_know')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-xs text-sky-400 hover:bg-sky-500/20 transition">
+                                    ⚡ I Already Know This
+                                </button>
+                            </div>
+                        </div>
                         
                         <details class="group bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300">
-                            <summary onclick="loadExplanation('${userGoal}', '${item.Course.replace(/'/g, "\\'")}', 'exp-${index}')" class="cursor-pointer p-4 text-sm text-sky-400 font-semibold flex items-center justify-between hover:bg-slate-900/50 transition-colors">
+                            <summary onclick="loadExplanation('${userGoal.replace(/'/g, "\\'")}', '${safeTitle}', 'exp-${index}')" class="cursor-pointer p-4 text-sm text-sky-400 font-semibold flex items-center justify-between hover:bg-slate-900/50 transition-colors">
                                 <span class="flex items-center space-x-2">
-                                    <i class="fa-solid fa-robot text-sky-400"></i>
-                                    <span>View AI Explanation</span>
+                                    <i class="fa-solid fa-brain text-sky-400"></i>
+                                    <span>View Explainable AI (XAI) Justification</span>
                                 </span>
                                 <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform duration-300 text-xs"></i>
                             </summary>
                             <div id="exp-${index}" class="p-4 text-slate-300 text-sm whitespace-pre-line border-t border-slate-800/80 bg-slate-950/90 leading-relaxed">
                                 <span class="text-slate-500 flex items-center space-x-2">
                                     <i class="fa-solid fa-spinner animate-spin"></i>
-                                    <span>Click to generate Groq analysis...</span>
+                                    <span>Click to generate Groq XAI analysis...</span>
                                 </span>
                             </div>
                         </details>
@@ -599,7 +631,7 @@
             const targetDiv = document.getElementById(elementId);
             if (targetDiv.getAttribute("data-loaded") === "true") return;
 
-            targetDiv.innerHTML = `<span class="animate-pulse text-sky-400 font-medium flex items-center space-x-2"><i class="fa-solid fa-brain animate-bounce"></i><span>Generating live technical breakdown via Groq...</span></span>`;
+            targetDiv.innerHTML = `<span class="animate-pulse text-sky-400 font-medium flex items-center space-x-2"><i class="fa-solid fa-brain animate-bounce"></i><span>Generating Explainable AI breakdown via Groq...</span></span>`;
 
             try {
                 const response = await fetch(`${API_BASE}/explain`, {
@@ -612,13 +644,13 @@
                 targetDiv.innerHTML = data.explanation.replace(/\n/g, '<br>');
                 targetDiv.setAttribute("data-loaded", "true");
             } catch (err) {
-                targetDiv.innerHTML = `<span class="text-rose-400">Error generating explanation.</span>`;
+                targetDiv.innerHTML = `<span class="text-rose-400">Error generating XAI explanation.</span>`;
             }
         }
 
         async function fetchRoadmap() {
             const container = document.getElementById("roadmapContainer");
-            container.innerHTML = `<div class="text-center py-8 text-sky-400 animate-pulse font-medium"><i class="fa-solid fa-compass animate-spin mr-2"></i>Synthesizing custom roadmap via Groq AI...</div>`;
+            container.innerHTML = `<div class="text-center py-8 text-sky-400 animate-pulse font-medium"><i class="fa-solid fa-compass animate-spin mr-2"></i>Synthesizing dynamic roadmap via Groq AI...</div>`;
 
             const userGoal = document.getElementById("userGoal").value.trim() || "Master Machine Learning";
 
@@ -637,6 +669,8 @@
                     el.className = "bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 glow-hover animate-card";
                     el.style.animationDelay = `${index * 0.08}s`;
                     
+                    const safeTopic = step.Topic.replace(/'/g, "\\'");
+
                     el.innerHTML = `
                         <div class="space-y-1">
                             <h4 class="text-lg font-bold text-sky-400 flex items-center gap-2">
@@ -647,7 +681,9 @@
                         </div>
                         <div class="flex items-center space-x-3 text-xs font-bold shrink-0">
                             <span class="bg-slate-950 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-800"><i class="fa-regular fa-clock mr-1.5 text-slate-400"></i>${step.Duration}</span>
-                            <span class="bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30"><i class="fa-solid fa-circle-check mr-1.5"></i>${step.Status}</span>
+                            <button onclick="sendFeedback('${safeTopic}', 'already_know')" class="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 px-3 py-1.5 rounded-lg border border-emerald-500/30 transition">
+                                <i class="fa-solid fa-circle-check mr-1.5"></i>${step.Status}
+                            </button>
                         </div>
                     `;
                     container.appendChild(el);

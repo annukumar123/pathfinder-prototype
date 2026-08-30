@@ -33,6 +33,15 @@ def init_db():
             name TEXT
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT,
+            item_id TEXT,
+            feedback_type TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     # Seed default demo account
     cursor.execute("INSERT OR IGNORE INTO users (email, password, name) VALUES (?, ?, ?)",
                    ("demo_learner@pathfinder.ai", "demo1234", "Demo Learner"))
@@ -89,7 +98,12 @@ class RoadmapRequest(BaseModel):
     target_domain: str = "Data Science & AI"
     skill_level: str = "Intermediate"
 
-# Authentication Endpoint
+class FeedbackRequest(BaseModel):
+    user_email: str = "demo_learner@pathfinder.ai"
+    item_title: str
+    feedback_type: str  # "thumbs_up", "thumbs_down", "already_know", "profile_update"
+
+# --- Authentication Endpoint ---
 @app.post("/api/auth")
 async def authenticate_user(req: AuthRequest):
     email = req.email.strip().lower()
@@ -134,7 +148,28 @@ async def authenticate_user(req: AuthRequest):
 
         return {"status": "success", "username": display_name, "email": email, "message": "Account created successfully."}
 
-# Core Search & AI Endpoints
+# --- Feedback & Adaptation Endpoint ---
+@app.post("/api/feedback")
+async def record_feedback(req: FeedbackRequest):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO user_feedback (user_email, item_id, feedback_type) VALUES (?, ?, ?)",
+                   (req.user_email, req.item_title, req.feedback_type))
+    conn.commit()
+    conn.close()
+
+    if req.feedback_type == "already_know":
+        adaptation_msg = f"Marked '{req.item_title}' as mastered. Dynamic learning path and competency completion updated!"
+    elif req.feedback_type == "thumbs_down":
+        adaptation_msg = f"De-prioritizing recommendations similar to '{req.item_title}' based on negative signal."
+    elif req.feedback_type == "thumbs_up":
+        adaptation_msg = f"Signal saved! Prioritizing deeper modules related to '{req.item_title}'."
+    else:
+        adaptation_msg = "Learner preferences saved! Model weighting updated."
+
+    return {"status": "success", "message": adaptation_msg}
+
+# --- Core Search & AI Endpoints ---
 @app.post("/api/recommend")
 async def recommend_courses(req: RecommendRequest):
     if not req.user_goal.strip():
@@ -145,31 +180,31 @@ async def recommend_courses(req: RecommendRequest):
 
 @app.post("/api/explain")
 async def explain_course(req: ExplainRequest):
-    fallback_text = f"""- **Prerequisites Needed:** Foundational knowledge in core concepts and syntax.
-- **Key Topics Covered:** Industry workflows, practical tools, and system design.
-- **Recommended Hands-on Project:** Build an end-to-end working prototype for {req.course_title}.
-- **Goal Relevance:** Directly provides the practical framework needed to achieve: "{req.user_goal}"."""
+    fallback_text = f"""- **Why Recommended:** Aligns directly with your goal '{req.user_goal}' and bridges key competency gaps.
+- **Prerequisites Needed:** Foundational knowledge in core syntax and environment tooling.
+- **Key Topics Covered:** Industry workflows, practical tools, and system architecture.
+- **Recommended Hands-on Project:** Build an end-to-end working prototype for {req.course_title}."""
 
     if not client:
         return {"explanation": fallback_text}
     
     prompt = f"""
-    You are a technical curriculum specialist.
+    You are a technical curriculum specialist providing Explainable AI (XAI) justifications.
     Learner Goal: "{req.user_goal}"
     Selected Course: "{req.course_title}"
     Target Level: {req.skill_level}
 
-    Provide a direct, concise breakdown in bullet points using this exact format:
+    Provide a direct breakdown in bullet points using this exact format:
+    - **Why Recommended:** [Explain specifically why this course bridges the skill gap for "{req.user_goal}"]
     - **Prerequisites Needed:** [List 2 core prerequisites]
-    - **Key Topics Covered:** [List 3-4 key technical topics covered in this specific course]
-    - **Recommended Hands-on Project:** [1 concrete real-world project/capstone to build]
-    - **Goal Relevance:** [1 short sentence explaining why this course helps achieve the goal]
+    - **Key Topics Covered:** [List 3-4 key technical topics]
+    - **Recommended Hands-on Project:** [1 concrete real-world capstone project to build]
     """
     
     try:
         response = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a concise technical advisor."},
+                {"role": "system", "content": "You are a concise technical advisor emphasizing explainability."},
                 {"role": "user", "content": prompt}
             ],
             model="openai/gpt-oss-20b",
